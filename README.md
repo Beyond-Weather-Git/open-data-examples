@@ -10,5 +10,4 @@ Examples and documentation for Beyond Weather datasets on the [Registry of Open 
 [awslabs/open-data-registry](https://github.com/awslabs/open-data-registry) as `datasets/beyond-weather-ecmwf-ifs-analysis.yaml`.
 
 The tutorial notebook is edited directly and committed with its outputs, so readers can see
-the results without running it. `ifs-analysis-n320/build_notebook.py` generated the first,
-longer version of the notebook. Do not run it, because it overwrites the current notebook.
+the results without running it.
