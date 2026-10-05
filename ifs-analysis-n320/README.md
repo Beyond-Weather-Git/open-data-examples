@@ -15,7 +15,7 @@ A cloud-native archive of the ECMWF Integrated Forecasting System (IFS) operatio
 | Time step | 6 hours (00, 06, 12, 18 UTC), 20,456 timesteps |
 | Grid | N320 reduced Gaussian (`GRIB_N=320`), 542,080 points, ~31 km, interpolated by MARS from the operational model resolution |
 | Vertical | 18 pressure levels: 1000, 925, 850, 700, 600, 500, 400, 300, 250, 200, 150, 100, 70, 50, 30, 10, 5, 2 hPa |
-| Variables | 6 upper-air, 18 surface, 4 "static" (see data dictionary) |
+| Variables | 6 upper-air, 22 surface, 4 "static" (see data dictionary) |
 | Format | Zarr v3 in an [Icechunk](https://icechunk.io) repository (format written with icechunk 2.0) |
 | Size | ~1.1 TB compressed (~6 TB uncompressed float32) |
 | Update frequency | Not currently updated |
@@ -98,6 +98,7 @@ All variables carry their original GRIB metadata as attributes (`GRIB_shortName`
 | `100m_u_component_of_wind` | 100u | 228246 | m s⁻¹ | 6 |
 | `100m_v_component_of_wind` | 100v | 228247 | m s⁻¹ | 5 |
 | `total_column_water` | tcw | 136 | kg m⁻² | 7 |
+| `total_column_water_vapour` | tcwv | 137 | kg m⁻² | 7 |
 | `total_cloud_cover` | tcc | 164 | 0-1 | 5 |
 | `high_cloud_cover` | hcc | 188 | 0-1 | 5 |
 | `medium_cloud_cover` | mcc | 187 | 0-1 | 4 |
@@ -106,6 +107,11 @@ All variables carry their original GRIB metadata as attributes (`GRIB_shortName`
 | `soil_temperature_level_2` | stl2 | 170 | K | 12 |
 | `volumetric_soil_water_layer_1` | swvl1 | 39 | m³ m⁻³ | 10 |
 | `volumetric_soil_water_layer_2` | swvl2 | 40 | m³ m⁻³ | 10 |
+| `sea_surface_temperature` | sst | 34 | K | 11 |
+| `sea_ice_cover` | ci | 31 | 0-1 | 3 |
+| `snow_depth` | sd | 141 | m of water equivalent | 10 |
+
+`sea_surface_temperature` and `sea_ice_cover` are only defined over sea and are NaN over land.
 
 ### "Static" variables, dims `(time, point)`
 
@@ -142,4 +148,4 @@ When you use the data, please cite it as:
 
 ## How this dataset was produced
 
-The data was retrieved from MARS one calendar month at a time per level type (`levtype=sfc` and `levtype=pl`), at `grid=N320`, for 00/06/12/18 UTC. It was decoded with cfgrib, renamed to the long variable names above, checked for completeness and data integrity (for example, no identical consecutive timesteps), bit-rounded, and appended to the Icechunk repository one day at a time.
+The data was retrieved from MARS one calendar month at a time per level type (`levtype=sfc` and `levtype=pl`), at `grid=N320`, for 00/06/12/18 UTC. It was decoded with cfgrib, renamed to the long variable names above, checked for completeness and data integrity (for example, no identical consecutive timesteps), bit-rounded, and appended to the Icechunk repo.
