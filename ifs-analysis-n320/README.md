@@ -26,14 +26,14 @@ A cloud-native archive of the ECMWF Integrated Forecasting System (IFS) operatio
 s3://beyond-weather-ecmwf-ifs-analysis/
 ├── README.md
 ├── LICENSE.txt
-└── data/
-    └── ifs-analysis-n320/          # Icechunk repository
-        ├── repo
-        ├── refs/
-        ├── snapshots/
-        ├── manifests/
-        ├── transactions/
-        └── chunks/
+├── index.html                  # bucket browser
+└── data.zarr/                  # Icechunk repository
+    ├── repo
+    ├── refs/
+    ├── snapshots/
+    ├── manifests/
+    ├── transactions/
+    └── chunks/
 ```
 
 The objects inside an Icechunk repository are named by content ID and are not meant to be read one by one. Open the repository with the `icechunk` library:
@@ -42,7 +42,7 @@ The objects inside an Icechunk repository are named by content ID and are not me
 import icechunk as ic
 import xarray as xr
 
-storage = ic.s3_storage(bucket="beyond-weather-ecmwf-ifs-analysis", prefix="data/ifs-analysis-n320",
+storage = ic.s3_storage(bucket="beyond-weather-ecmwf-ifs-analysis", prefix="data.zarr",
                         region="us-east-2", anonymous=True)
 session = ic.Repository.open(storage).readonly_session(branch="main")
 ds = xr.open_zarr(session.store, chunks={})
@@ -64,7 +64,7 @@ What you do need to know is what is *not* undone on read:
 import icechunk as ic
 import xarray as xr
 
-storage = ic.s3_storage(bucket="beyond-weather-ecmwf-ifs-analysis", prefix="data/ifs-analysis-n320",
+storage = ic.s3_storage(bucket="beyond-weather-ecmwf-ifs-analysis", prefix="data.zarr",
                         region="us-east-2", anonymous=True)
 repo = ic.Repository.open(storage)
 session = repo.readonly_session(branch="main")
