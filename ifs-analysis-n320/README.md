@@ -71,9 +71,30 @@ repo = ic.Repository.open(storage)
 session = repo.readonly_session(branch="main")
 ds = xr.open_zarr(session.store, consolidated=False, chunks={})
 
-# Decoding happens here, on load: only these 18 x 542,080 values are fetched and decompressed.
+# Nothing is downloaded until .load(). Then zarr fetches and decompresses one stored chunk: the
+# whole timestep for this variable, i.e. all 18 pressure levels (18 x 542,080 values). xarray then
+# keeps only the 850 hPa level you asked for, so the result has 542,080 values.
 t850 = ds["temperature"].sel(time="2024-07-15T12:00", pressure_level=850).load()
 ```
+
+To see both steps, inspect the codec zarr applies on read and check the rounding on the values you just loaded:
+
+```python
+import numpy as np
+
+temperature = ds["temperature"]
+
+# Decompression: the codec stored in the array metadata, which zarr runs for you on every chunk read
+print("Codec:", temperature.encoding["compressors"])
+
+# Bit rounding: the mantissa bits kept (out of 23 for float32) and what was rounded away
+keepbits = temperature.attrs["bwdl_keepbits"]
+bits = t850.values.view(np.uint32)
+print("keepbits:", keepbits)
+print("Any non-zero bit below the kept ones:", bool((bits & ((1 << (23 - keepbits)) - 1)).any()))
+```
+
+`bwdl_keepbits` is not used to read the data. It only documents how many mantissa bits were kept when the data was written. The check above shows it holds: the bits below it are all zero.
 
 #### From the Earthmover Marketplace
 
