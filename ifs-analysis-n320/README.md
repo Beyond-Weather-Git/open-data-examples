@@ -45,7 +45,7 @@ import xarray as xr
 storage = ic.s3_storage(bucket="beyond-weather-ecmwf-ifs-analysis", prefix="data/ifs-analysis-n320",
                         region="us-east-2", anonymous=True)
 session = ic.Repository.open(storage).readonly_session(branch="main")
-ds = xr.open_zarr(session.store, consolidated=False, chunks={})
+ds = xr.open_zarr(session.store, chunks={})
 ```
 
 ### Opening the data
@@ -58,7 +58,6 @@ What you do need to know is what is *not* undone on read:
 
 - **Bit rounding is permanent.** Values come back as float32, but the discarded mantissa bits are zero. The kept precision per variable is in the `bwdl_keepbits` attribute.
 - **Open lazily.** Pass `chunks={}` to `xr.open_zarr` so each stored chunk becomes one dask chunk and nothing is downloaded until you call `.load()` or `.compute()`. One chunk is one timestep, so select time before loading.
-- **Do not use consolidated metadata.** Icechunk keeps its own metadata, so pass `consolidated=False`.
 - **Missing values are NaN.** `sea_surface_temperature` and `sea_ice_cover` are NaN over land. Mask with `land_sea_mask` if you need to.
 
 ```python
@@ -69,7 +68,7 @@ storage = ic.s3_storage(bucket="beyond-weather-ecmwf-ifs-analysis", prefix="data
                         region="us-east-2", anonymous=True)
 repo = ic.Repository.open(storage)
 session = repo.readonly_session(branch="main")
-ds = xr.open_zarr(session.store, consolidated=False, chunks={})
+ds = xr.open_zarr(session.store, chunks={})
 
 # Nothing is downloaded until .load(). Then zarr fetches and decompresses one stored chunk: the
 # whole timestep for this variable, i.e. all 18 pressure levels (18 x 542,080 values). xarray then
@@ -107,7 +106,7 @@ import xarray as xr
 client = al.Client()
 repo = client.get_repo("beyond-weather/ecmwf-ifs-analysis")
 session = repo.readonly_session(branch="main")
-ds = xr.open_zarr(session.store, consolidated=False, chunks={})
+ds = xr.open_zarr(session.store, chunks={})
 ```
 
 ### Versioning
