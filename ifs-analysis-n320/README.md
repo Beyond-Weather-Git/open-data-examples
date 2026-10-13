@@ -1,6 +1,6 @@
 # ECMWF IFS Analysis N320 - Beyond Weather Icechunk Zarr
 
-A cloud-native archive of the ECMWF Integrated Forecasting System (IFS) operational analysis, 6-hourly from 2011-01-01 to 2024-12-31, on the native N320 reduced Gaussian grid. It is published by [Beyond Weather](https://beyond-weather.com) through the [Registry of Open Data on AWS](https://registry.opendata.aws/beyond-weather-ecmwf-ifs-analysis/).
+A cloud-native archive of the ECMWF Integrated Forecasting System (IFS) operational analysis, 6-hourly from 2011-01-01 to 2026-09-30, on the native N320 reduced Gaussian grid. It is published by [Beyond Weather](https://beyond-weather.com) through the [Registry of Open Data on AWS](https://registry.opendata.aws/beyond-weather-ecmwf-ifs-analysis/).
 
 - **Tutorial:** [Get to Know a Dataset notebook](get-to-know-a-dataset.ipynb)
 - **Bucket:** `s3://beyond-weather-ecmwf-ifs-analysis` (region `us-east-2`), public, no AWS account needed
@@ -11,13 +11,13 @@ A cloud-native archive of the ECMWF Integrated Forecasting System (IFS) operatio
 | | |
 | --- | --- |
 | Source | ECMWF IFS operational analysis (`class=od`, `stream=oper`, `type=an`), retrieved from the ECMWF MARS archive |
-| Period | 2011-01-01 00 UTC to 2024-12-31 18 UTC |
-| Time step | 6 hours (00, 06, 12, 18 UTC), 20,456 timesteps |
+| Period | 2011-01-01 00 UTC to 2026-09-30 18 UTC |
+| Time step | 6 hours (00, 06, 12, 18 UTC), 23,008 timesteps |
 | Grid | N320 reduced Gaussian (`GRIB_N=320`), 542,080 points, ~31 km, interpolated by MARS from the operational model resolution |
 | Vertical | 18 pressure levels: 1000, 925, 850, 700, 600, 500, 400, 300, 250, 200, 150, 100, 70, 50, 30, 10, 5, 2 hPa |
 | Variables | 6 upper-air, 22 surface, 4 "static" (see data dictionary) |
 | Format | Zarr v3 in an [Icechunk](https://icechunk.io) repository (format written with icechunk 2.0) |
-| Size | ~1.1 TB compressed (~6 TB uncompressed float32) |
+| Size | ~1.3 TB compressed (~6.7 TB uncompressed float32) |
 | Update frequency | Not currently updated |
 
 ## Bucket layout
@@ -48,6 +48,47 @@ session = ic.Repository.open(storage).readonly_session(branch="main")
 ds = xr.open_zarr(session.store, consolidated=False, chunks={})
 ```
 
+### Opening the data
+
+Two things are needed to read the data correctly: the `icechunk` library (the repository is not plain Zarr) and a Zarr v3 capable `zarr` (>= 3) with `xarray`. Install them with `pip install icechunk "zarr>=3" xarray dask`.
+
+**Decompression is automatic.** Each chunk is Blosc/Zstandard compressed, and the Blosc codec is recorded in the Zarr v3 array metadata. `zarr` reads that metadata and decodes every chunk on access, so you never call a decompressor yourself. Do not read the objects under `chunks/` directly. They are Icechunk chunk objects, not Zarr keys.
+
+What you do need to know is what is *not* undone on read:
+
+- **Bit rounding is permanent.** Values come back as float32, but the discarded mantissa bits are zero. The kept precision per variable is in the `bwdl_keepbits` attribute.
+- **Open lazily.** Pass `chunks={}` to `xr.open_zarr` so each stored chunk becomes one dask chunk and nothing is downloaded until you call `.load()` or `.compute()`. One chunk is one timestep, so select time before loading.
+- **Do not use consolidated metadata.** Icechunk keeps its own metadata, so pass `consolidated=False`.
+- **Missing values are NaN.** `sea_surface_temperature` and `sea_ice_cover` are NaN over land. Mask with `land_sea_mask` if you need to.
+
+```python
+import icechunk as ic
+import xarray as xr
+
+storage = ic.s3_storage(bucket="beyond-weather-ecmwf-ifs-analysis", prefix="data/ifs-analysis-n320",
+                        region="us-east-2", anonymous=True)
+repo = ic.Repository.open(storage)
+session = repo.readonly_session(branch="main")
+ds = xr.open_zarr(session.store, consolidated=False, chunks={})
+
+# Decoding happens here, on load: only these 18 x 542,080 values are fetched and decompressed.
+t850 = ds["temperature"].sel(time="2024-07-15T12:00", pressure_level=850).load()
+```
+
+#### From the Earthmover Marketplace
+
+The dataset is also listed on the [Earthmover Marketplace](https://docs.earthmover.io/marketplace/data-users). The repository is the same Icechunk repository, so the decoding behaviour above is identical. You open it through Arraylake instead of S3. This needs a free Earthmover account and `arraylake >= 0.26.1` (`pip install --upgrade arraylake`). See the Earthmover docs for how to authenticate.
+
+```python
+import arraylake as al
+import xarray as xr
+
+client = al.Client()
+repo = client.get_repo("beyond-weather/ecmwf-ifs-analysis")
+session = repo.readonly_session(branch="main")
+ds = xr.open_zarr(session.store, consolidated=False, chunks={})
+```
+
 ### Versioning
 
 Every change to the dataset is an Icechunk commit on the `main` branch. To make an analysis reproducible, record `session.snapshot_id` and later open `repo.readonly_session(snapshot_id=...)`.
@@ -56,7 +97,7 @@ Every change to the dataset is an Icechunk commit on the `main` branch. To make 
 
 | Dimension / coordinate | Size | Description |
 | --- | --- | --- |
-| `time` | 20,456 | Analysis valid time (`datetime64`, UTC) |
+| `time` | 23,008 | Analysis valid time (`datetime64`, UTC) |
 | `pressure_level` | 18 | Pressure in hPa, ordered 1000 → 2 |
 | `point` | 542,080 | Index of the grid point on the N320 reduced Gaussian grid |
 | `latitude(point)` | 542,080 | Latitude of each point (degrees north), 640 rows from 89.78°N to 89.78°S |
@@ -122,7 +163,7 @@ All variables carry their original GRIB metadata as attributes (`GRIB_shortName`
 | `standard_deviation_of_orography` | sdor | 160 | m | 3 |
 | `slope_of_sub_gridscale_orography` | slor | 163 | - | 4 |
 
-These fields are stored at every timestep because they change when ECMWF upgrades the IFS. Within 2011-2024 they change at the first analysis of IFS cycles 41r1 (2015-05-12 06 UTC), 41r2 (2016-03-08 06 UTC) and 48r1 (2023-06-27 06 UTC). Divide `orography` by g = 9.80665 m s⁻² to get height in metres.
+These fields are stored at every timestep because they change when ECMWF upgrades the IFS. Within 2011-2026 they change at the first analysis of IFS cycles 41r1 (2015-05-12 06 UTC), 41r2 (2016-03-08 06 UTC) and 48r1 (2023-06-27 06 UTC). Divide `orography` by g = 9.80665 m s⁻² to get height in metres.
 
 ## Known caveats
 
@@ -134,7 +175,7 @@ These fields are stored at every timestep because they change when ECMWF upgrade
 
 The data is published under the [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/) licence, following the [ECMWF terms of use](https://apps.ecmwf.int/datasets/licences/general/). The full text, including the list of modifications, is in [`LICENSE.txt`](LICENSE.txt). The same file is at the top level of the bucket.
 
-- **Copyright statement:** Copyright © 2011-2024 European Centre for Medium-Range Weather Forecasts (ECMWF).
+- **Copyright statement:** Copyright © 2011-2026 European Centre for Medium-Range Weather Forecasts (ECMWF).
 - **Source:** www.ecmwf.int
 - **Licence statement:** This data is published under a Creative Commons Attribution 4.0 International (CC BY 4.0). https://creativecommons.org/licenses/by/4.0/
 - **Disclaimer:** ECMWF does not accept any liability whatsoever for any error or omission in the data, their availability, or for any loss or damage arising from their use.

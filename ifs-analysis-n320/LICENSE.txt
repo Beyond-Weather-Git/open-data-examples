@@ -1,7 +1,7 @@
 ECMWF IFS Analysis N320 - Beyond Weather Icechunk Zarr
 ======================================================
 
-Copyright statement: Copyright © 2011-2024 European Centre for Medium-Range Weather Forecasts (ECMWF).
+Copyright statement: Copyright © 2011-2026 European Centre for Medium-Range Weather Forecasts (ECMWF).
 
 Source: www.ecmwf.int
 
