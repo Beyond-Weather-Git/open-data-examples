@@ -25,7 +25,10 @@ License: |
   Copyright © 2011-2026 European Centre for Medium-Range Weather Forecasts (ECMWF). Source: www.ecmwf.int.
   ECMWF does not accept any liability whatsoever for any error or omission in the data, their availability,
   or for any loss or damage arising from their use. Modified by Beyond Weather: selection of variables and
-  levels, conversion from GRIB to Icechunk Zarr, and lossy bit rounding.
+  levels, interpolation to the N320 grid by ECMWF MARS, conversion from GRIB to Icechunk Zarr, renaming of
+  variables, and lossy bit rounding. Beyond Weather provides its modifications and hosting as-is, without
+  warranty, to the fullest extent permitted by law. This modified dataset is not endorsed by, sponsored by
+  or affiliated with ECMWF.
 Citation: |
   Contains modified ECMWF IFS operational analysis data, Copyright © 2011-2026 European Centre for
   Medium-Range Weather Forecasts (ECMWF), www.ecmwf.int, licensed under CC BY 4.0.

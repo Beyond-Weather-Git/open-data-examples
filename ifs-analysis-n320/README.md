@@ -198,8 +198,10 @@ The data is published under the [Creative Commons Attribution 4.0 International 
 
 - **Copyright statement:** Copyright © 2011-2026 European Centre for Medium-Range Weather Forecasts (ECMWF).
 - **Source:** www.ecmwf.int
-- **Licence statement:** This data is published under a Creative Commons Attribution 4.0 International (CC BY 4.0). https://creativecommons.org/licenses/by/4.0/
+- **Licence statement:** This data is published under a Creative Commons Attribution 4.0 International (CC BY 4.0) licence. https://creativecommons.org/licenses/by/4.0/
 - **Disclaimer:** ECMWF does not accept any liability whatsoever for any error or omission in the data, their availability, or for any loss or damage arising from their use.
+- **Beyond Weather's disclaimer:** Beyond Weather provides its modifications and hosting as-is and as-available, without warranty of any kind, to the fullest extent permitted by law. Errors or omissions introduced by Beyond Weather's processing (for example bit-rounding or conversion) are not covered by ECMWF's disclaimer above.
+- **No endorsement:** This modified dataset is not endorsed by, sponsored by or affiliated with ECMWF.
 - **Modifications:** Beyond Weather selected the variables and pressure levels, converted the data from GRIB to Icechunk Zarr, renamed the variables, and bit-rounded the values (lossy).
 
 If you build a service on this data, ECMWF asks for the copyright statement "This service is based on data and products of the European Centre for Medium-Range Weather Forecasts (ECMWF)" instead.
