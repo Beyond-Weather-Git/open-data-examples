@@ -1,4 +1,4 @@
-Name: ECMWF IFS Analysis N320 - Beyond Weather Icechunk Zarr
+Name: "ECMWF IFS Analysis N320 - Beyond Weather Icechunk Zarr"
 Description: |
   The ECMWF Integrated Forecasting System (IFS) operational analysis, every 6 hours from 2011
   to 2026, on the native N320 reduced Gaussian grid (542,080 points, about 31 km). It contains a
@@ -39,6 +39,10 @@ Resources:
     Type: S3 Bucket
     Explore:
     - '[Browse Bucket](https://beyond-weather-ecmwf-ifs-analysis.s3.amazonaws.com/index.html)'
+  - Description: Notifications for new ECMWF IFS Analysis N320 - Beyond Weather Icechunk Zarr data
+    ARN: arn:aws:sns:us-east-2:239830941214:beyond-weather-ecmwf-ifs-analysis-object_created
+    Region: us-east-2
+    Type: SNS Topic
 DataAtWork:
   Tutorials:
     - Title: "Get To Know A Dataset: ECMWF IFS Analysis N320 - Beyond Weather Icechunk Zarr"
